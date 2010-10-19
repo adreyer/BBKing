@@ -41,12 +41,6 @@ def p_empty(p):
     'empty :'
     pass
 
-def p_ignorews(p):
-    '''ignore_ws : WHITESPACE 
-                 | empty
-    '''
-    pass
-
 def p_text(p):
     '''text : text term 
             | term
@@ -71,20 +65,20 @@ def p_term_no_ws(p):
     p[0] = p[1]
 
 def p_close_tag(p):
-    'closetag : LBRACKET ignore_ws SLASH ignore_ws SYMBOL ignore_ws RBRACKET'
-    p[0] = p[5]
+    'closetag : LBRACKET SLASH SYMBOL RBRACKET'
+    p[0] = p[3]
 
 def p_simple_tag(p):
-    'opentag : LBRACKET ignore_ws SYMBOL ignore_ws RBRACKET'
-    p[0] = (p[3], None, {})
+    'opentag : LBRACKET SYMBOL RBRACKET'
+    p[0] = (p[2], None, {})
 
 def p_single_arg_tag(p):
-    'opentag : LBRACKET ignore_ws SYMBOL ignore_ws EQ text RBRACKET'
-    p[0] = (p[3], p[6], {})
+    'opentag : LBRACKET SYMBOL EQ text RBRACKET'
+    p[0] = (p[2], p[4], {})
 
 def p_multi_arg_tag(p):
-    'opentag : LBRACKET ignore_ws SYMBOL ignore_ws args RBRACKET'
-    p[0] = (p[3], None, p[5])
+    'opentag : LBRACKET SYMBOL WHITESPACE args RBRACKET'
+    p[0] = (p[2], None, p[4])
 
 def p_tag_args(p):
     '''args : args WHITESPACE arg
@@ -102,6 +96,7 @@ def p_tag_arg(p):
     p[0] = (p[1],p[3])
 
 def p_error(p):
-    print "Parsing ERROR", p
+    # ignore errors for now simply don't run bbcode if it does not parse
+    pass 
 
 parser = yacc.yacc()
