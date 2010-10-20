@@ -12,20 +12,6 @@ class Tagged(object):
         self.arg = arg
         self.kwargs = kwargs
 
-    def compress(self):
-        compressed = []
-        sio = None
-        for item in self.contents:
-            if isinstance(item, Tagged):
-                if sio:
-                    compressed.append(Literal(sio.getvalue()))
-                    sio = None
-                compressed.append(item)
-            else:
-                if not sio:
-                    sio = StringIO.StringIO()
-                sio.write(item.value)
-
 class Literal(object):
     def __init__(self, value):
         self.value = value
@@ -75,8 +61,6 @@ def p_errors(p):
     if len(p) == 5:
         p[0] = p[1] + p[2] + p[3]
 
-    print "errors", list(p)
-
 def p_empty(p):
     'empty :'
     pass
@@ -94,6 +78,7 @@ def p_term(p):
     '''
        term : WHITESPACE 
             | SYMBOL
+            | SLASH
             | MISC
     '''
     p[0] = p[1]

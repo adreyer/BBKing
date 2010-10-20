@@ -14,7 +14,7 @@ class BBTagURL(BBTag):
         if self.arg:
             context['url'] = self.arg
         else:
-            context['url'] = self.contents
+            context['url'] = context['contents']
 
 class BBTagImg(BBTag):
     tag_name = 'img'
