@@ -1,4 +1,6 @@
 
+import StringIO
+
 import ply.yacc as yacc
 
 from lexer import tokens
@@ -9,6 +11,27 @@ class Tagged(object):
         self.contents = contents
         self.arg = arg
         self.kwargs = kwargs
+
+    def compress(self):
+        compressed = []
+        sio = None
+        for item in self.contents:
+            if isinstance(item, Tagged):
+                if sio:
+                    compressed.append(Literal(sio.buf))
+                    sio = None
+                compressed.append(item)
+            else:
+                if not sio:
+                    sio = StringIO.StringIO()
+                sio.write(item.value)
+
+class Literal(object):
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return "Literal(%s)"%self.value
 
 def p_main(p):
     '''content : content tagged
@@ -34,8 +57,24 @@ def p_untagged(p):
                 | RBRACKET
                 | EQ
                 | SLASH
+                | errors
     '''
-    p[0] = p[1]
+    p[0] = Literal(p[1])
+
+def p_errors(p):
+    '''errors : LBRACKET error
+              | LBRACKET SYMBOL error
+              | LBRACKET SLASH error
+              | LBRACKET SYMBOL WHITESPACE error
+    '''
+    if len(p) == 3:
+        p[0] = p[1]
+    if len(p) == 4:
+        p[0] = p[1] + p[2]
+    if len(p) == 5:
+        p[0] = p[1] + p[2] + p[3]
+
+    print "errors", list(p)
 
 def p_empty(p):
     'empty :'
@@ -97,6 +136,6 @@ def p_tag_arg(p):
 
 def p_error(p):
     # ignore errors for now simply don't run bbcode if it does not parse
-    pass 
+    return p
 
 parser = yacc.yacc()
