@@ -18,7 +18,7 @@ class Tagged(object):
         for item in self.contents:
             if isinstance(item, Tagged):
                 if sio:
-                    compressed.append(Literal(sio.buf))
+                    compressed.append(Literal(sio.getvalue()))
                     sio = None
                 compressed.append(item)
             else:
