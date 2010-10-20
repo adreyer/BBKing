@@ -63,10 +63,14 @@ class BBTag(object):
         self.contents = contents
         self.template = get_template("bbking/tags/%s.html" % self.tag_name)
 
+    def update_context(self, context):
+        pass
+
     def render(self, context):
         try:
             context.push()
             context['contents'] = self.contents.render(context)
+            self.update_context(context)
             return self.template.render(context)
         finally:
             context.pop()
@@ -85,6 +89,7 @@ class BBTagWithArg(BBTag):
             context.push()
             context['contents'] = self.contents.render(context)
             context['arg'] = self.arg
+            self.update_context(context)
             return self.template.render(context)
         finally:
             context.pop()
@@ -104,6 +109,7 @@ class BBTagWithKWArgs(BBTag):
             context['contents'] = self.contents.render(context)
             for key,value in self.kwargs.items():
                 context[key] = value
+            self.update_context(context)
             return self.template.render(context)
         finally:
             context.pop()
