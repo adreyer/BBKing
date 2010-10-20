@@ -12,7 +12,7 @@ class BBTagURL(BBTag):
 
     def update_context(self, context):
         if self.arg:
-            context['url'] = self.arg
+            context['url'] = self.arg.render(context)
         else:
             context['url'] = context['contents']
 

@@ -119,9 +119,7 @@ def load_tags(contents):
     tags = []
 
     for item in contents:
-        if isinstance(item, parser.Literal):
-            tags.append(LiteralTag(item.value))
-        else:
+        if isinstance(item, parser.Tagged):
             tag = get_tag(item.name)
             children = load_tags(item.contents)
             if item.arg:
@@ -130,6 +128,8 @@ def load_tags(contents):
                 tags.append(tag(children, **item.kwargs)) 
             else:
                 tags.append(tag(children))
+        else:
+            tags.append(LiteralTag(item))
 
     if len(tags) == 1:
         return tags[0]
