@@ -3,7 +3,7 @@ import StringIO
 
 import ply.yacc as yacc
 
-from lexer import tokens
+from bbking.lexer import tokens
 
 class Tagged(object):
     def __init__(self, name, contents, arg=None, **kwargs): 
@@ -49,6 +49,7 @@ def p_tagged(p):
     if name != p[3]:
         raise SyntaxError, "Unbalanced tags: [%s] [/%s]"%(name, p[3])
     p[0] = Tagged(name, p[2], arg, **kwargs)
+    p[0].compress()
 
 def p_untagged(p):
     '''untagged : SYMBOL
