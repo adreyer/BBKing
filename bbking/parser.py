@@ -5,6 +5,25 @@ import ply.yacc as yacc
 
 from bbking.lexer import tokens
 
+def compress(contents):
+    compressed = []
+    sio = None
+    for item in contents:
+        if isinstance(item, Tagged):
+            if sio:
+                compressed.append(sio.getvalue())
+                sio = None
+            compressed.append(item)
+        else:
+            if not sio:
+                sio = StringIO.StringIO()
+            sio.write(item)
+
+    if sio:
+        compressed.append(sio.getvalue())
+        
+    return compressed
+
 class Tagged(object):
     def __init__(self, name, contents, arg=None, **kwargs): 
         self.name = name
@@ -12,28 +31,11 @@ class Tagged(object):
         self.arg = arg
         self.kwargs = kwargs
 
-    def compress(self):
-        compressed = []
-        sio = None
-        for item in self.contents:
-            if isinstance(item, Tagged):
-                if sio:
-                    compressed.append(Literal(sio.getvalue()))
-                    sio = None
-                compressed.append(item)
-            else:
-                if not sio:
-                    sio = StringIO.StringIO()
-                sio.write(item.value)
-
-class Literal(object):
-    def __init__(self, value):
-        self.value = value
-
-    def __repr__(self):
-        return "Literal(%s)"%self.value
-
 def p_main(p):
+    '''main : content'''
+    p[0] = compress(p[1])
+
+def p_content(p):
     '''content : content tagged
                | content untagged
                | empty
@@ -48,8 +50,7 @@ def p_tagged(p):
     name, arg, kwargs = p[1]
     if name != p[3]:
         raise SyntaxError, "Unbalanced tags: [%s] [/%s]"%(name, p[3])
-    p[0] = Tagged(name, p[2], arg, **kwargs)
-    p[0].compress()
+    p[0] = Tagged(name, compress(p[2]), arg, **kwargs)
 
 def p_untagged(p):
     '''untagged : SYMBOL
@@ -60,7 +61,7 @@ def p_untagged(p):
                 | SLASH
                 | errors
     '''
-    p[0] = Literal(p[1])
+    p[0] = p[1]
 
 def p_errors(p):
     '''errors : LBRACKET error
@@ -75,7 +76,20 @@ def p_errors(p):
     if len(p) == 5:
         p[0] = p[1] + p[2] + p[3]
 
-    print "errors", list(p)
+def p_errors_with_args(p):
+    '''errors : LBRACKET SYMBOL WHITESPACE arg_errors'''
+    p[0] = p[1] + p[2] + p[3] + p[4]
+
+def p_args_errors(p):
+    '''arg_errors : SYMBOL error
+                  | SYMBOL EQ error
+                  | args arg_errors
+    '''
+
+    if len(p) == 3:
+        p[0] = p[1]
+    else:
+        p[0] = [p[1],p[2]]
 
 def p_empty(p):
     'empty :'
@@ -95,9 +109,20 @@ def p_term(p):
        term : WHITESPACE 
             | SYMBOL
             | MISC
+            | SLASH
+            | LBRACKET
     '''
     p[0] = p[1]
 
+def p_text_no_ws(p):
+    '''text_no_ws : text_no_ws term_no_ws
+            | term_no_ws
+    '''
+    if len(p) == 3:
+        p[0] = p[1] + [p[2]]
+    else:
+        p[0] = [p[1]]
+    
 def p_term_no_ws(p):
     ''' term_no_ws : SYMBOL
                    | MISC
@@ -114,7 +139,7 @@ def p_simple_tag(p):
 
 def p_single_arg_tag(p):
     'opentag : LBRACKET SYMBOL EQ text RBRACKET'
-    p[0] = (p[2], p[4], {})
+    p[0] = (p[2], compress(p[4])[0], {})
 
 def p_multi_arg_tag(p):
     'opentag : LBRACKET SYMBOL WHITESPACE args RBRACKET'
@@ -132,8 +157,8 @@ def p_tag_args(p):
         p[0] = { key : value }
 
 def p_tag_arg(p):
-    'arg  : SYMBOL EQ term_no_ws'
-    p[0] = (p[1],p[3])
+    'arg  : SYMBOL EQ text_no_ws'
+    p[0] = (p[1], compress(p[3])[0])
 
 def p_error(p):
     # ignore errors for now simply don't run bbcode if it does not parse

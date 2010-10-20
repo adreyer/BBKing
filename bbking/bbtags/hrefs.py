@@ -12,9 +12,9 @@ class BBTagURL(BBTag):
 
     def update_context(self, context):
         if self.arg:
-            context['url'] = self.arg
+            context['url'] = self.arg.render(context)
         else:
-            context['url'] = self.contents
+            context['url'] = context['contents']
 
 class BBTagImg(BBTag):
     tag_name = 'img'
