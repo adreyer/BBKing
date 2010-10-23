@@ -54,11 +54,6 @@ def p_tagged(p):
         return
     p[0] = [Tagged(name, compress(p[2]), arg, **kwargs)]
 
-def p_tagged_error(p):
-    '''tagged : opentag content error'''
-
-    print "p_tagged_error", list(p)
-
 def p_untagged(p):
     '''untagged : SYMBOL
                 | WHITESPACE
@@ -66,37 +61,8 @@ def p_untagged(p):
                 | RBRACKET
                 | EQ
                 | SLASH
-                | errors
     '''
     p[0] = [p[1]]
-
-def p_errors(p):
-    '''errors : LBRACKET error
-              | LBRACKET SYMBOL error
-              | LBRACKET SLASH error
-              | LBRACKET SYMBOL WHITESPACE error
-    '''
-    if len(p) == 3:
-        p[0] = p[1]
-    if len(p) == 4:
-        p[0] = p[1] + p[2]
-    if len(p) == 5:
-        p[0] = p[1] + p[2] + p[3]
-
-def p_errors_with_args(p):
-    '''errors : LBRACKET SYMBOL WHITESPACE arg_errors'''
-    p[0] = p[1] + p[2] + p[3] + p[4]
-
-def p_args_errors(p):
-    '''arg_errors : SYMBOL error
-                  | SYMBOL EQ error
-                  | args arg_errors
-    '''
-
-    if len(p) == 3:
-        p[0] = p[1]
-    else:
-        p[0] = [p[1],p[2]]
 
 def p_empty(p):
     'empty :'
@@ -149,7 +115,7 @@ def p_simple_tag(p):
 
 def p_single_arg_tag(p):
     'opentag : LBRACKET SYMBOL EQ text RBRACKET'
-    raw = p[1] + p[2] + p[3] + p[4][0] + p[5]
+    raw = "".join(p[1:4] + p[4] + [p[5]])
     p[0] = (p[2], compress(p[4])[0], {}, raw)
 
 def p_multi_arg_tag(p):
@@ -176,6 +142,68 @@ def p_tag_arg(p):
     p[3] = compress(p[3])[0]
     raw = "".join(p[1:])
     p[0] = (p[1], p[3], raw)
+
+
+#Error Handling
+
+#def p_malformed_open_tag(p):
+#    '''opentag : LBRACKET SYMBOL errors RBRACKET
+#               | LBRACKET RBRACKET
+#               | LBRACKET errors
+#    '''
+#    raw = "".join(getattr(t,'value',t) for t in p[1:])
+#    p[0] = ('!malformed-open', None, {}, raw)
+#    print "malformed-open", list(p)
+
+def p_malformed_close_tag(p):
+    '''closetag : LBRACKET SLASH errors RBRACKET
+    '''
+    raw = "".join(p[1:3] + p[3] + [p[4]])
+    p[0] = ('!malformed-close', raw)
+    print "malformed-close", list(p)
+
+def p_errors(p):
+    '''errors : SYMBOL errors error
+              | SLASH errors error
+              | WHITESPACE errors error
+              | EQ errors error
+              | error
+    '''
+    if len(p) == 4:
+        p[0] = [p[1]] + p[2]
+    else:
+        p[0] = []
+
+    print "errors", list(p)
+
+#def p_errors_with_args(p):
+#    '''errors : LBRACKET SYMBOL WHITESPACE arg_errors'''
+#    p[0] = p[1] + p[2] + p[3] + p[4]
+#
+#def p_arg_error(p):
+#    '''arg_error : SYMBOL error
+#                 | SYMBOL EQ error
+#    '''
+#    if len(p) == 3:
+#        p[0] = p[1]
+#    else:
+#        p[0] = [p[1],p[2]]
+#
+#
+#def p_args_errors(p):
+#    '''arg_errors : arg_error arg_errors
+#                  | args arg_errors
+#                  | arg_error
+#    '''
+#
+#    if len(p) == 2:
+#        p[0] = p[1]
+#    else:
+#        p[0] = [p[1],p[2]]
+
+def p_errors_no_close(p):
+    '''untagged : opentag content error'''
+    print "p_errors_no_close", list(p)
 
 def p_error(p):
     # ignore errors for now simply don't run bbcode if it does not parse

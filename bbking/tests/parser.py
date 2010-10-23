@@ -83,3 +83,9 @@ class MalformedCodeTestCase(TestCase):
 
         self.assertEqual(len(parsed), 1)
         self.assertEqual(parsed[0], "[url=http://www.example.com/ this is a test.[/url]")
+
+    def test_parse_malformed_close_tag(self):
+        parsed = parser.parser.parse("[url=http://www.example.com/]this is a test.[/url malformed]")
+
+        self.assertEqual(len(parsed), 1)
+        self.assertEqual(parsed[0],"[url=http://www.example.com/]this is a test.[/url malformed]")
