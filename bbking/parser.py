@@ -163,10 +163,8 @@ def p_malformed_open_tag(p):
                | LBRACKET SYMBOL WHITESPACE malformed_args RBRACKET
                | LBRACKET RBRACKET
     '''
-    print "opentag"
     raw = "".join(flatten(p[1:]))
     p[0] = [raw]
-    print "malformed-open", list(p)
 
 def p_malformed_args(p):
     '''malformed_args : EQ errors
@@ -175,7 +173,6 @@ def p_malformed_args(p):
                       | SLASH errors
     '''
     p[0] = flatten([p[1], p[2]])
-    print 'p_malformed_args', list(p)
 
 def p_malformed_args_symbol(p):
     '''malformed_args : SYMBOL SYMBOL errors
@@ -185,12 +182,10 @@ def p_malformed_args_symbol(p):
                       | SYMBOL LBRACKET errors
     '''
     p[0] = flatten([p[1],p[2],p[3]])
-    print 'p_malformed_args_symbol', list(p)
 
 def p_malformed_args_symbol_only(p):
     '''malformed_args : SYMBOL'''
     p[0] = [p[1]]
-    print 'p_malformed_args_symbol_only', list(p)
 
 def p_malformed_close_tag(p):
     '''closetag : LBRACKET SLASH errors RBRACKET
@@ -211,12 +206,10 @@ def p_errors(p):
         p[0] = [p[1]] + p[2]
     else:
         p[0] = []
-    print "errors", list(p)
 
 def p_malformed_tags(p):
     '''untagged : malformed_opentag
     '''
-    print "p_errors_no_close", list(p)
     p[0] = p[1]
 
 def p_error(p):
