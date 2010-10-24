@@ -5,6 +5,17 @@ import ply.yacc as yacc
 
 from bbking.lexer import tokens
 
+def flatten(items):
+    if not isinstance(items, list):
+        return items
+    flattened = []
+    for item in items:
+        if isinstance(item, list):
+            flattened += flatten(item)
+        else:
+            flattened.append(item)
+    return flattened
+
 def compress(contents):
     compressed = []
     sio = None
@@ -46,7 +57,8 @@ def p_content(p):
         p[0] = []
 
 def p_tagged(p):
-    '''tagged : opentag content closetag'''
+    '''tagged : opentag content closetag
+    '''
     name, arg, kwargs, raw = p[1]
     close_name, close_raw = p[3]
     if name != close_name:
@@ -146,67 +158,69 @@ def p_tag_arg(p):
 
 #Error Handling
 
-#def p_malformed_open_tag(p):
-#    '''opentag : LBRACKET SYMBOL errors RBRACKET
-#               | LBRACKET RBRACKET
-#               | LBRACKET errors
-#    '''
-#    raw = "".join(getattr(t,'value',t) for t in p[1:])
-#    p[0] = ('!malformed-open', None, {}, raw)
-#    print "malformed-open", list(p)
+def p_malformed_open_tag(p):
+    '''malformed_opentag : LBRACKET SYMBOL WHITESPACE RBRACKET
+               | LBRACKET SYMBOL WHITESPACE malformed_args RBRACKET
+               | LBRACKET RBRACKET
+    '''
+    print "opentag"
+    raw = "".join(flatten(p[1:]))
+    p[0] = [raw]
+    print "malformed-open", list(p)
+
+def p_malformed_args(p):
+    '''malformed_args : EQ errors
+                      | MISC errors
+                      | LBRACKET errors
+                      | SLASH errors
+    '''
+    p[0] = flatten([p[1], p[2]])
+    print 'p_malformed_args', list(p)
+
+def p_malformed_args_symbol(p):
+    '''malformed_args : SYMBOL SYMBOL errors
+                      | SYMBOL SLASH errors
+                      | SYMBOL WHITESPACE errors
+                      | SYMBOL MISC errors
+                      | SYMBOL LBRACKET errors
+    '''
+    p[0] = flatten([p[1],p[2],p[3]])
+    print 'p_malformed_args_symbol', list(p)
+
+def p_malformed_args_symbol_only(p):
+    '''malformed_args : SYMBOL'''
+    p[0] = [p[1]]
+    print 'p_malformed_args_symbol_only', list(p)
 
 def p_malformed_close_tag(p):
     '''closetag : LBRACKET SLASH errors RBRACKET
     '''
     raw = "".join(p[1:3] + p[3] + [p[4]])
     p[0] = ('!malformed-close', raw)
-    print "malformed-close", list(p)
 
 def p_errors(p):
     '''errors : SYMBOL errors error
               | SLASH errors error
               | WHITESPACE errors error
               | EQ errors error
+              | MISC errors error
+              | LBRACKET errors error
               | error
     '''
     if len(p) == 4:
         p[0] = [p[1]] + p[2]
     else:
         p[0] = []
-
     print "errors", list(p)
 
-#def p_errors_with_args(p):
-#    '''errors : LBRACKET SYMBOL WHITESPACE arg_errors'''
-#    p[0] = p[1] + p[2] + p[3] + p[4]
-#
-#def p_arg_error(p):
-#    '''arg_error : SYMBOL error
-#                 | SYMBOL EQ error
-#    '''
-#    if len(p) == 3:
-#        p[0] = p[1]
-#    else:
-#        p[0] = [p[1],p[2]]
-#
-#
-#def p_args_errors(p):
-#    '''arg_errors : arg_error arg_errors
-#                  | args arg_errors
-#                  | arg_error
-#    '''
-#
-#    if len(p) == 2:
-#        p[0] = p[1]
-#    else:
-#        p[0] = [p[1],p[2]]
-
-def p_errors_no_close(p):
-    '''untagged : opentag content error'''
+def p_malformed_tags(p):
+    '''untagged : malformed_opentag
+    '''
     print "p_errors_no_close", list(p)
+    p[0] = p[1]
 
 def p_error(p):
     # ignore errors for now simply don't run bbcode if it does not parse
     return p
 
-parser = yacc.yacc()
+parser = yacc.yacc(debug=True)
