@@ -62,7 +62,14 @@ class BBTag(object):
             raise UnnamedTagException
 
         self.contents = contents
-        self.template = get_template("bbking/tags/%s.html" % self.tag_name)
+
+    @classmethod
+    def get_template(cls):
+        template = getattr(cls, 'template', None)
+        if not template:
+            template = get_template("bbking/tags/%s.html" % cls.tag_name)
+            cls.template = template
+        return template
 
     def update_context(self, context):
         pass
@@ -72,7 +79,7 @@ class BBTag(object):
             context.push()
             context['contents'] = self.contents.render(context)
             self.update_context(context)
-            return self.template.render(context)
+            return self.get_template().render(context)
         finally:
             context.pop()
 
@@ -83,7 +90,6 @@ class BBTagWithArg(BBTag):
 
         self.contents = contents
         self.arg = arg
-        self.template = get_template("bbking/tags/%s.html" % self.tag_name)
 
     def render(self, context):
         try:
@@ -91,7 +97,7 @@ class BBTagWithArg(BBTag):
             context['contents'] = self.contents.render(context)
             context['arg'] = self.arg
             self.update_context(context)
-            return self.template.render(context)
+            return self.get_template().render(context)
         finally:
             context.pop()
 
@@ -102,7 +108,6 @@ class BBTagWithKWArgs(BBTag):
 
         self.contents = contents
         self.kwargs = kwargs
-        self.template = get_template("bbking/tags/%s.html" % self.tag_name)
 
     def render(self, context):
         try:
@@ -111,7 +116,7 @@ class BBTagWithKWArgs(BBTag):
             for key,value in self.kwargs.items():
                 context[key] = value
             self.update_context(context)
-            return self.template.render(context)
+            return self.get_template().render(context)
         finally:
             context.pop()
 
@@ -142,4 +147,5 @@ def compile(raw):
         raise CompilationError
 
     return load_tags(parsed)
+
 
