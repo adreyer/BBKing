@@ -5,7 +5,7 @@ from django.db.models import signals
 
 import bbking
 
-def BBKingField(object):
+class BBCodeField(object):
     def __init__(self, text_field='body', hash_field=None):
         self.text_field = text_field
         self.hash_field = hash_field
@@ -19,7 +19,16 @@ def BBKingField(object):
 
         setattr(cls, name, self)
 
-    def __get__(self, obj):
+    def __get__(self, obj, instance_type = None):
+        if obj is None:
+            return self
+
+        compiled_name = '_%s_compiled' % self.name
+        try:
+            return getattr(obj, compiled_name)
+        except AttributeError:
+            pass
+
         raw = getattr(obj, self.text_field)
 
         if self.hash_field:
@@ -27,24 +36,36 @@ def BBKingField(object):
             if hash_key:
                 compiled = cache.get('bbking:%s' % hash_key)
             else:
-                compiled = bbking.LiteralValue(raw)
+                compiled = bbking.LiteralTag(raw)
         else:
             hash_key = None
+            compiled = None
 
         if not compiled:
             try:
                 compiled = bbking.compile(raw)
             except CompilationError:
-                compiled = bbking.LiteralValue(raw)
+                compiled = bbking.LiteralTag(raw)
 
             if hash_key:
                 cache.set('bbking:%s' % hash_key, compiled)
+
+        setattr(obj, compiled_name, compiled)
 
         return compiled
 
     def update_hash_field(self, signal, sender, args, kwargs):
         raw = getattr(sender, self.text_field)
 
-        hash_key = hashlib.sha1(raw).hexdigest()
+        try:
+            compiled = bbking.compile(raw)
+        except CompilationError:
+            compiled = bbking.LiteralTag(raw)
+
+        if isinstance(compiled, bbking.LiteralTag):
+            hash_key = ''
+        else:
+            hash_key = hashlib.sha1(raw).hexdigest()
+
         setattr(sender, self.hash_field, hash_key)
 
