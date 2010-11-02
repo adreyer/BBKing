@@ -72,6 +72,10 @@ class BBTag(object):
             cls.template = template
         return template
 
+    @classmethod
+    def usage(cls):
+        return []
+
     def update_context(self, context):
         pass
 

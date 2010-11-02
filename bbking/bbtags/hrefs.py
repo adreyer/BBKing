@@ -16,5 +16,18 @@ class BBTagURL(BBTag):
         else:
             context['url'] = context['contents']
 
+    @classmethod
+    def usage(cls):
+        return [
+            '[url=http://example.com/]Example link text[/url]',
+            '[url]http://example.com/[/url]',
+        ]
+
 class BBTagImg(BBTag):
     tag_name = 'img'
+
+    @classmethod
+    def usage(cls):
+        return [
+            '[img]http://example.com/blam.gif[/img]',
+        ]
