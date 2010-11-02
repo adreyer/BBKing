@@ -8,6 +8,6 @@ setup(name="bbking",
     author_email="rev.null@gmail.com",
     packages=find_packages(),
     package_data={
-        'djbb':['media/*','templates/*'],
+        'bbking':['media/*','templates/*'],
     })
 
