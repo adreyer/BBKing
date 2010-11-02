@@ -54,8 +54,8 @@ class BBCodeField(object):
 
         return compiled
 
-    def update_hash_field(self, signal, sender, args, kwargs):
-        raw = getattr(sender, self.text_field)
+    def update_hash_field(self, signal, sender, instance=None, **kwargs):
+        raw = getattr(instance, self.text_field)
 
         try:
             compiled = bbking.compile(raw)
@@ -67,5 +67,5 @@ class BBCodeField(object):
         else:
             hash_key = hashlib.sha1(raw).hexdigest()
 
-        setattr(sender, self.hash_field, hash_key)
+        setattr(instance, self.hash_field, hash_key)
 
