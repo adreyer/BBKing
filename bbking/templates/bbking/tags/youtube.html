@@ -1,0 +1,9 @@
+{% if valid_url %}
+<object width="560" height="340">
+    <param name="movie" value="{{ url }}"></param>
+    <param name="allowFullScreen" value="true"></param>
+    <param name="allowscriptaccess" value="always"></param>
+    <embed src="{{ url }}" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="560" height="340"></embed></object><br />
+{% else %}
+    Invalid Youtube URL: {{ contents }}
+{% endif %}
