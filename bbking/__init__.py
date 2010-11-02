@@ -2,6 +2,7 @@ import StringIO
 
 from django.template.loader import get_template
 from django.conf import settings
+from django.template import defaultfilters
 
 from bbking import parser
 
@@ -54,7 +55,7 @@ class LiteralTag(object):
         self.value = value
 
     def render(self, context):
-        return self.value
+        return defaultfilters.linebreaksbr(self.value)
 
 class BBTag(object):
     def __init__(self, contents):

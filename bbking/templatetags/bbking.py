@@ -6,21 +6,16 @@ register = template.Library()
 
 class BBCodeNode(template.Node):
     def __init__(self, varname):
-        self.varname = template.Variable(content)
+        self.varname = template.Variable(varname)
 
     def render(self, context):
         try:
-            raw = self.content.resolve(context)
+            compiled = self.varname.resolve(context)
         except template.VariableDoesNotExist:
             return ''
 
-        compiled = bbking.compile(raw)
+        return compiled.render(context)
         
-        if not compiled:
-            return raw
-        else:
-            return compiled.render(context)
-
 @register.tag
 def bbcode(parser, token):
     try:
