@@ -9,6 +9,7 @@ from bbking import parser
 DEFAULT_TAG_LIBRARIES = (
     'bbking.bbtags.text',
     'bbking.bbtags.hrefs',
+    'bbking.bbtags.quote',
 )
 
 TAG_LIBRARIES = getattr(settings, "BBKING_TAG_LIBRARIES", DEFAULT_TAG_LIBRARIES)
