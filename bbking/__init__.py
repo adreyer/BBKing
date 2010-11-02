@@ -74,7 +74,7 @@ class BBTag(object):
 
     @classmethod
     def usage(cls):
-        return []
+        return ["[%s]Example Text[/%s]"%(cls.tag_name, cls.tag_name)]
 
     def update_context(self, context):
         pass

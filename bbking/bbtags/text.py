@@ -13,5 +13,5 @@ class BBTagUnderline(BBTag):
     tag_name = "u"
 
 class BBTagStrikethrough(BBTag):
-    tag_name = "s"
+    tag_name = "strike"
 
