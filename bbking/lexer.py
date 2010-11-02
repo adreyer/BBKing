@@ -19,7 +19,6 @@ t_WHITESPACE = '[ \t\n]+'
 t_MISC = '[^\[\]/=A-Za-z \t\n_]+'
 
 def t_error(t):
-    print "illegal character '%s'" % t.value[0]
     t.lexer.skip(1)
 
 lexer = lex.lex()
