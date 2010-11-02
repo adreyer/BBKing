@@ -1,3 +1,4 @@
+from django.conf import settings
 
 import StringIO
 
@@ -216,4 +217,10 @@ def p_error(p):
     # ignore errors for now simply don't run bbcode if it does not parse
     return p
 
-parser = yacc.yacc(debug=True)
+
+outputdir = getattr(settings, 'PARSER_DIR', None)
+if outputdir:
+    parser = yacc.yacc(debug=0, outputdir=outputdir)
+else:
+    parser = yacc.yacc(debug=0)
+
