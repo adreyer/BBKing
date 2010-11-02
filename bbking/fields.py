@@ -44,7 +44,7 @@ class BBCodeField(object):
         if not compiled:
             try:
                 compiled = bbking.compile(raw)
-            except CompilationError:
+            except bbking.CompilationError:
                 compiled = bbking.LiteralTag(raw)
 
             if hash_key:
@@ -59,7 +59,7 @@ class BBCodeField(object):
 
         try:
             compiled = bbking.compile(raw)
-        except CompilationError:
+        except bbking.CompilationError:
             compiled = bbking.LiteralTag(raw)
 
         if isinstance(compiled, bbking.LiteralTag):

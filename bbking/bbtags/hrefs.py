@@ -1,7 +1,8 @@
+import re
 
 from bbking import BBTag
 
-__all__ = ['BBTagURL', 'BBTagImg']
+__all__ = ['BBTagURL', 'BBTagImg', 'BBTagYouTube']
 
 class BBTagURL(BBTag):
     tag_name = 'url'
@@ -31,3 +32,27 @@ class BBTagImg(BBTag):
         return [
             '[img]http://example.com/blam.gif[/img]',
         ]
+
+class BBTagYouTube(BBTag):
+    tag_name = 'youtube'
+
+    _video_re = re.compile(r"v=(\w+)")
+    _base_url = 'http://www.youtube.com/v/%s&amp;hl=en&amp;fs=1&amp;'
+
+    def update_context(self, context):
+        url = context['contents']
+
+        match = self._video_re.search(url)
+        if not match:
+            context['valid_url'] = False
+            return
+
+        context['valid_url'] = True
+        context['url'] = self._base_url % match.group(1)
+
+    @classmethod
+    def usage(cls):
+        return [
+            '[youtube]http://example.com/blam.gif[/youtube]',
+        ]
+
