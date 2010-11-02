@@ -3,6 +3,8 @@ import StringIO
 from django.template.loader import get_template
 from django.conf import settings
 from django.template import defaultfilters
+from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape
 
 from bbking import parser
 
@@ -49,14 +51,14 @@ class BlockTag(object):
         output = StringIO.StringIO()
         for item in self.contents:
             output.write(item.render(context))
-        return output.getvalue()
+        return mark_safe(output.getvalue())
 
 class LiteralTag(object):
     def __init__(self, value):
         self.value = value
 
     def render(self, context):
-        return defaultfilters.linebreaksbr(self.value)
+        return defaultfilters.linebreaksbr(conditional_escape(self.value))
 
 class BBTag(object):
     def __init__(self, contents):
