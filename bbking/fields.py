@@ -65,6 +65,7 @@ class BBCodeField(object):
         if isinstance(compiled, bbking.LiteralTag):
             hash_key = ''
         else:
+            raw.encode('utf-8')
             hash_key = hashlib.sha1(raw).hexdigest()
 
         setattr(instance, self.hash_field, hash_key)
