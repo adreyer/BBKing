@@ -1,4 +1,5 @@
 import re
+from urlparse import urlparse
 
 from bbking import BBTag
 
@@ -16,7 +17,8 @@ class BBTagURL(BBTag):
             context['url'] = self.arg
         else:
             context['url'] = context['contents']
-
+        context['domain'] = urlparse(context['url'])[1]    
+    
     @classmethod
     def usage(cls):
         return [
