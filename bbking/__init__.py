@@ -97,13 +97,17 @@ class BBTag(object):
 class BBTagWithArg(BBTag):
     takes_arg = True
     takes_kwargs = False
+    default_arg = None
     
-    def __init__(self, contents, arg):
+    def __init__(self, contents, arg=None):
         if not self.tag_name:
             raise UnnamedTagException
 
         self.contents = contents
-        self.arg = arg
+        if arg is None:
+            self.arg = self.default_arg
+        else:
+            self.arg = arg
 
     def render(self, context):
         try:
