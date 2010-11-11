@@ -7,6 +7,7 @@ __all__ = ['BBTagURL', 'BBTagImg', 'BBTagYouTube']
 
 class BBTagURL(BBTag):
     tag_name = 'url'
+    takes_arg = True
 
     def __init__(self, contents, arg=None):
         super(BBTagURL, self).__init__(contents)

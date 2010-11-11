@@ -61,6 +61,9 @@ class LiteralTag(object):
         return defaultfilters.linebreaksbr(conditional_escape(self.value))
 
 class BBTag(object):
+    takes_arg = False
+    takes_kwargs = False
+    
     def __init__(self, contents):
         if not self.tag_name:
             raise UnnamedTagException
@@ -92,6 +95,9 @@ class BBTag(object):
             context.pop()
 
 class BBTagWithArg(BBTag):
+    takes_arg = True
+    takes_kwargs = False
+    
     def __init__(self, contents, arg):
         if not self.tag_name:
             raise UnnamedTagException
@@ -110,6 +116,9 @@ class BBTagWithArg(BBTag):
             context.pop()
 
 class BBTagWithKWArgs(BBTag):
+    takes_arg = False
+    takes_kwargs = True
+    
     def __init__(self, contents, **kwargs):
         if not self.tag_name:
             raise UnnamedTagException
@@ -135,9 +144,9 @@ def load_tags(contents):
         if isinstance(item, parser.Tagged):
             tag = get_tag(item.name)
             children = load_tags(item.contents)
-            if item.arg:
+            if item.arg and tag.takes_arg:
                 tags.append(tag(children, item.arg))
-            elif item.kwargs:
+            elif item.kwargs and tag.takes_kwargs:
                 tags.append(tag(children, **item.kwargs)) 
             else:
                 tags.append(tag(children))
