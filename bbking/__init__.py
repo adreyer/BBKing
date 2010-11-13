@@ -69,6 +69,8 @@ class LiteralTag(object):
         return self.value
 
 class BBTag(object):
+    
+    default_arg = None
 
     def __init__(self, contents, raw, arg=None, **kwargs):
         if not self.tag_name:
@@ -78,7 +80,7 @@ class BBTag(object):
         self.raw = raw
         if arg:
             self.arg = arg
-        elif self.default_arg:
+        else:
             self.arg = self.default_arg
         self.kwargs = kwargs
 
@@ -101,6 +103,7 @@ class BBTag(object):
         try:
             context.push()
             context['contents'] = self.contents.render(context)
+            context['raw'] = self.raw
             if self.arg:
                 context['arg'] = self.arg
             for key,value in self.kwargs.items():
