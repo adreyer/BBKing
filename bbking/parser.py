@@ -83,11 +83,7 @@ class Block(object):
 
     @property
     def raw(self):
-        try:
-            return "".join(raw(item) for item in self.contents)
-        except Exception:
-            import pdb
-            pdb.set_trace()
+        return "".join(raw(item) for item in self.contents)
 
     def compress(self):
         compressed = []

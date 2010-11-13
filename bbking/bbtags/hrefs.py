@@ -8,15 +8,11 @@ __all__ = ['BBTagURL', 'BBTagImg', 'BBTagYouTube']
 class BBTagURL(BBTag):
     tag_name = 'url'
 
-    def __init__(self, contents, arg=None):
-        super(BBTagURL, self).__init__(contents)
-        self.arg = arg
-
     def update_context(self, context):
         if self.arg:
             context['url'] = self.arg
         else:
-            context['url'] = context['raw']
+            context['url'] = context['raw_contents']
         context['domain'] = urlparse(context['url'])[1]    
     
     @classmethod
@@ -43,7 +39,7 @@ class BBTagYouTube(BBTag):
     _base_url = 'http://www.youtube.com/v/%s%s&amp;hl=en&amp;fs=1&amp;'
 
     def update_context(self, context):
-        url = context['raw']
+        url = context['raw_contents']
 
         match = self._video_re.search(url)
         if not match:
