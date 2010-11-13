@@ -69,15 +69,18 @@ class LiteralTag(object):
         return self.value
 
 class BBTag(object):
-    takes_arg = False
-    takes_kwargs = False
-    
-    def __init__(self, contents, raw):
+
+    def __init__(self, contents, raw, arg=None, **kwargs):
         if not self.tag_name:
             raise UnnamedTagException
 
         self.contents = contents
         self.raw = raw
+        if arg:
+            self.arg = arg
+        elif self.default_arg:
+            self.arg = self.default_arg
+        self.kwargs = kwargs
 
     @classmethod
     def get_template(cls):
@@ -98,55 +101,10 @@ class BBTag(object):
         try:
             context.push()
             context['contents'] = self.contents.render(context)
-            self.update_context(context)
-            return self.get_template().render(context)
-        finally:
-            context.pop()
-
-class BBTagWithArg(BBTag):
-    takes_arg = True
-    takes_kwargs = False
-    default_arg = None
-    
-    def __init__(self, contents, raw, arg=None):
-        if not self.tag_name:
-            raise UnnamedTagException
-
-        self.contents = contents
-        self.raw = raw
-        if arg is None:
-            self.arg = self.default_arg
-        else:
-            self.arg = arg
-
-    def render(self, context):
-        try:
-            context.push()
-            context['contents'] = self.contents.render(context)
-            context['arg'] = self.arg
-            self.update_context(context)
-            return self.get_template().render(context)
-        finally:
-            context.pop()
-
-class BBTagWithKWArgs(BBTag):
-    takes_arg = False
-    takes_kwargs = True
-    
-    def __init__(self, contents, raw, **kwargs):
-        if not self.tag_name:
-            raise UnnamedTagException
-
-        self.contents = contents
-        self.raw = raw
-        self.kwargs = kwargs
-
-    def render(self, context):
-        try:
-            context.push()
-            context['contents'] = self.contents.render(context)
+            if self.arg:
+                context['arg'] = self.arg
             for key,value in self.kwargs.items():
-                context[key] = value
+                            context[key] = value
             self.update_context(context)
             return self.get_template().render(context)
         finally:
@@ -159,9 +117,9 @@ def load_tags(contents):
         if isinstance(item, parser.Tagged):
             tag = get_tag(item.name)
             children = load_tags(item.contents)
-            if item.arg and tag.takes_arg:
+            if item.arg:
                 tags.append(tag(children, item.raw, item.arg))
-            elif item.kwargs and tag.takes_kwargs:
+            elif item.kwargs:
                 tags.append(tag(children, item.raw, **item.kwargs)) 
             else:
                 tags.append(tag(children, item.raw))
