@@ -63,7 +63,7 @@ class LiteralTag(object):
         self.value = value
 
     def render(self, context):
-        if settings.BBKING_USE_WORDFILTERS:
+        if getattr(settings, 'BBKING_USE_WORDFILTERS', False):
             return defaultfilters.linebreaksbr(
                     conditional_escape(wordfilter(self.value)))
         return defaultfilters.linebreaksbr(conditional_escape(self.value))
@@ -107,6 +107,7 @@ class BBTag(object):
         try:
             context.push()
             context['contents'] = self.contents.render(context)
+            context['raw_contents'] = self.contents.raw
             context['raw'] = self.raw
             if self.arg:
                 context['arg'] = self.arg
