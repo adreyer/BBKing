@@ -17,36 +17,99 @@ def flatten(items):
             flattened.append(item)
     return flattened
 
-def compress(contents):
-    compressed = []
-    sio = None
-    for item in contents:
-        if isinstance(item, Tagged):
-            if sio:
-                compressed.append(sio.getvalue())
-                sio = None
-            compressed.append(item)
-        else:
-            if not sio:
-                sio = StringIO.StringIO()
-            sio.write(item)
+def raw(item):
+    return getattr(item, 'raw', item)
 
-    if sio:
-        compressed.append(sio.getvalue())
-        
-    return compressed
+class Text(object):
+    def __init__(self, value=""):
+        self.value = value
+        self.raw = value
 
-class Tagged(object):
-    def __init__(self, name, contents, raw, arg=None, **kwargs): 
+    def __add__(self, other):
+        return Block([self, other])
+
+class OpenTag(object):
+    def __init__(self, name, raw, arg=None, **kwargs):
         self.name = name
-        self.contents = contents
         self.raw = raw
         self.arg = arg
         self.kwargs = kwargs
+ 
+class Args(object):
+    def __init__(self, args, raw):
+        self.args = args
+        self.raw = raw
+
+    def add_arg(self, arg, raw):
+        self.args[arg.key] = arg.value
+        self.raw += raw
+        return self
+
+class Arg(object):
+    def __init__(self, key, value, raw):
+        self.key = key
+        self.value = value
+        self.raw = raw
+
+class CloseTag(object):
+    def __init__(self, name, raw):
+        self.name = name
+        self.raw = raw
+
+class Tagged(object):
+    def __init__(self, open_tag, contents, close_tag, raw):
+        self.name = open_tag.name
+        self.contents = contents
+        self.arg = open_tag.arg
+        self.kwargs = open_tag.kwargs
+        self.raw = raw
+
+class Block(object):
+    def __init__(self, contents):
+        self.contents = contents
+        
+    def __add__(self, other):
+        if isinstance(other, Block):
+            self.contents += other.contents
+            return self
+        self.contents.append(other)
+        return self
+
+    def __radd__(self, other):
+        if isinstance(other, Block):
+            return other.__add__(self)
+        self.contents.insert(0, other)
+        return self
+
+    @property
+    def raw(self):
+        try:
+            return "".join(raw(item) for item in self.contents)
+        except Exception:
+            import pdb
+            pdb.set_trace()
+
+    def compress(self):
+        compressed = []
+        sio = None
+        for item in self.contents:
+            if isinstance(item, Tagged):
+                if sio:
+                    compressed.append(sio.getvalue())
+                    sio = None
+                compressed.append(item)
+            else:
+                if not sio:
+                    sio = StringIO.StringIO()
+                sio.write(raw(item))
+        if sio:
+            compressed.append(sio.getvalue())
+        
+        return compressed
 
 def p_main(p):
     '''main : content'''
-    p[0] = compress(p[1])
+    p[0] = p[1].compress()
 
 def p_content(p):
     '''content : content tagged
@@ -56,18 +119,16 @@ def p_content(p):
     if len(p) == 3:
         p[0] = p[1] + p[2]
     else:
-        p[0] = []
+        p[0] = Block([])
 
 def p_tagged(p):
     '''tagged : opentag content closetag
     '''
-    name, arg, kwargs, raw = p[1]
-    close_name, close_raw = p[3]
-    full_raw = p[0] = [raw] + p[2] + [close_raw]
-    if name != close_name:
-        p[0] = full_raw
+    if p[1].name != p[3].name:
+        p[0] = Text(p[1].raw) + p[2] + Text(p[3].raw)
         return
-    p[0] = [Tagged(name, compress(p[2]), full_raw, arg, **kwargs)]
+    p[0] = Tagged(p[1], p[2].compress(), p[3],
+        "".join(raw(item) for item in p[1:]))
 
 def p_untagged(p):
     '''untagged : SYMBOL
@@ -77,7 +138,7 @@ def p_untagged(p):
                 | EQ
                 | SLASH
     '''
-    p[0] = [p[1]]
+    p[0] = Text(p[1])
 
 def p_empty(p):
     'empty :'
@@ -88,9 +149,9 @@ def p_text(p):
             | term
     '''
     if len(p) == 3:
-        p[0] = p[1] + [p[2]]
+        p[0] = p[1] + p[2]
     else:
-        p[0] = [p[1]]
+        p[0] = p[1]
 
 def p_term(p):
     '''
@@ -100,64 +161,54 @@ def p_term(p):
             | SLASH
             | LBRACKET
     '''
-    p[0] = p[1]
+    p[0] = Text(p[1])
 
 def p_text_no_ws(p):
     '''text_no_ws : text_no_ws term_no_ws
             | term_no_ws
     '''
     if len(p) == 3:
-        p[0] = p[1] + [p[2]]
+        p[0] = p[1] + p[2]
     else:
-        p[0] = [p[1]]
+        p[0] = p[1]
 
 def p_term_no_ws(p):
     ''' term_no_ws : SYMBOL
                    | MISC
                    | SLASH
     '''
-    p[0] = p[1]
+    p[0] = Text(p[1])
 
 def p_close_tag(p):
     'closetag : LBRACKET SLASH SYMBOL RBRACKET'
-    raw = "".join(p[1:])
-    p[0] = (p[3], raw)
+    p[0] = CloseTag(p[3], "".join(raw(item) for item in p[1:]))
 
 def p_simple_tag(p):
     'opentag : LBRACKET SYMBOL RBRACKET'
-    raw = "".join(p[1:])
-    p[0] = (p[2], None, {}, raw)
+    p[0] = OpenTag(p[2], "".join(raw(item) for item in p[1:]))
 
 def p_single_arg_tag(p):
     'opentag : LBRACKET SYMBOL EQ text RBRACKET'
-    raw = "".join(p[1:4] + p[4] + [p[5]])
-    p[0] = (p[2], compress(p[4])[0], {}, raw)
+    p[0] = OpenTag(p[2], "".join(raw(item) for item in p[1:]), p[4].raw)
 
 def p_multi_arg_tag(p):
     'opentag : LBRACKET SYMBOL WHITESPACE args RBRACKET'
-    args, raw_args = p[4]
-    raw = p[1] + p[2] + p[3] + p[4][1] + p[5]
-    p[0] = (p[2], None, args, raw)
+    args = p[4]
+    p[0] = OpenTag(p[2], "".join(raw(item) for item in p[1:]),
+        **args.args)
 
 def p_tag_args(p):
     '''args : args WHITESPACE arg
             | arg
     '''
     if len(p) == 4:
-        key,value,raw_arg = p[3]
-        d, raw_args = p[1]
-        raw = raw_args + p[2] + raw_arg
-        p[0] = (dict(d,**{ key : value}), raw)
+        p[0] = p[1].add_arg(p[3],"".join(raw(item) for item in p[2:]))
     else:
-        key,value,raw = p[1]
-        p[0] = ({ key : value }, raw)
+        p[0] = Args({}, "").add_arg(p[1], p[1].raw)
 
 def p_tag_arg(p):
     'arg  : SYMBOL EQ text_no_ws'
-    p[3] = compress(p[3])[0]
-    raw = "".join(p[1:])
-    p[0] = (p[1], p[3], raw)
-
+    p[0] = Arg(p[1], p[3].raw, "".join(raw(item) for item in p[1:]))
 
 #Error Handling
 
@@ -166,8 +217,7 @@ def p_malformed_open_tag(p):
                | LBRACKET SYMBOL WHITESPACE malformed_args RBRACKET
                | LBRACKET RBRACKET
     '''
-    raw = "".join(flatten(p[1:]))
-    p[0] = [raw]
+    p[0] = Text("".join(raw(item) for item in p[1:]))
 
 def p_malformed_args(p):
     '''malformed_args : EQ errors
@@ -175,7 +225,7 @@ def p_malformed_args(p):
                       | LBRACKET errors
                       | SLASH errors
     '''
-    p[0] = flatten([p[1], p[2]])
+    p[0] = Text("".join(raw(item) for item in p[1:]))
 
 def p_malformed_args_symbol(p):
     '''malformed_args : SYMBOL SYMBOL errors
@@ -184,17 +234,16 @@ def p_malformed_args_symbol(p):
                       | SYMBOL MISC errors
                       | SYMBOL LBRACKET errors
     '''
-    p[0] = flatten([p[1],p[2],p[3]])
+    p[0] = Text("".join(raw(item) for item in p[1:]))
 
 def p_malformed_args_symbol_only(p):
     '''malformed_args : SYMBOL'''
-    p[0] = [p[1]]
+    p[0] = Text(p[1])
 
 def p_malformed_close_tag(p):
     '''closetag : LBRACKET SLASH errors RBRACKET
     '''
-    raw = "".join(p[1:3] + p[3] + [p[4]])
-    p[0] = ('!malformed-close', raw)
+    p[0] = CloseTag('!malformed-close', "".join(raw(item) for item in p[1:]))
 
 def p_errors(p):
     '''errors : SYMBOL errors error
@@ -206,9 +255,9 @@ def p_errors(p):
               | error
     '''
     if len(p) == 4:
-        p[0] = [p[1]] + p[2]
+        p[0] = p[1] + p[2]
     else:
-        p[0] = []
+        p[0] = Block([])
 
 def p_malformed_tags(p):
     '''untagged : malformed_opentag

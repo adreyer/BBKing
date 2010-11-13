@@ -13,6 +13,7 @@ class ParserTestCase(TestCase):
         self.assertEqual(type(tag), parser.Tagged)
         self.assertEqual(tag.name, 'i')
         self.assertEqual(tag.contents, ["This text is italian."])
+        self.assertEqual(tag.raw, "[i]This text is italian.[/i]")
 
     def test_parse_with_arg(self):
         parsed = parser.parser.parse("[url=http://www.example.com/]An Example Site[/url]")
@@ -25,6 +26,7 @@ class ParserTestCase(TestCase):
         self.assertEqual(tag.arg, "http://www.example.com/")
         self.assertEqual(tag.kwargs, {})
         self.assertEqual(tag.contents, ["An Example Site"])
+        self.assertEqual(tag.raw, "[url=http://www.example.com/]An Example Site[/url]")
 
     def test_parse_with_kwargs(self):
         parsed = parser.parser.parse("[img width=640 height=480]http://www.example.com/goatse.jpg[/img]")
@@ -36,6 +38,7 @@ class ParserTestCase(TestCase):
         self.assertEqual(tag.arg, None)
         self.assertEqual(tag.kwargs, {'width' : '640', 'height' : '480'})
         self.assertEqual(tag.contents, ["http://www.example.com/goatse.jpg"])
+        self.assertEqual(tag.raw, "[img width=640 height=480]http://www.example.com/goatse.jpg[/img]")
 
     def test_parse_multiple_tags(self):
         parsed = parser.parser.parse("""[quote=Rev. Johnny Healey]
