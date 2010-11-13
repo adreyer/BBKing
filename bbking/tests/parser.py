@@ -13,6 +13,7 @@ class ParserTestCase(TestCase):
         self.assertEqual(type(tag), parser.Tagged)
         self.assertEqual(tag.name, 'i')
         self.assertEqual(tag.contents, ["This text is italian."])
+        self.assertEqual(tag.raw, "[i]This text is italian.[/i]")
 
     def test_parse_with_arg(self):
         parsed = parser.parser.parse("[url=http://www.example.com/]An Example Site[/url]")
