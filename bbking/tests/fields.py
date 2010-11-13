@@ -31,14 +31,16 @@ class BBCodeFieldTestCase(TestCase):
         self.assertEqual(type(bbc), text.BBTagItalic)
 
     def test_bbcode_with_hash(self):
-        fm = self.FakeModelWithHash("[i]\xa1This is a test![/i]")
+        fm = self.FakeModelWithHash(u"[i]\xa1This is a test![/i]")
 
         fm.save()
 
-        self.assertEqual(fm.hash, hashlib.sha1("[i]\xa1This is a test![/i]").hexdigest())
+        hashed = hashlib.sha1(u"[i]\xa1This is a test![/i]".encode('utf-8')).hexdigest()
+
+        self.assertEqual(fm.hash, hashed)
     
     def test_no_hash_on_unparsed(self):
-        fm = self.FakeModelWithHash("\xa1This is a test!")
+        fm = self.FakeModelWithHash(u"\xa1This is a test!")
 
         fm.save()
 
