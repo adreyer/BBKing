@@ -25,20 +25,20 @@ class BBCodeFieldTestCase(TestCase):
             type(self).bbcode.update_hash_field(None, type(self),self)
 
     def test_bbcode_field(self):
-        fm = self.FakeModel("[i]¡This is a test![/i]")
+        fm = self.FakeModel(u"[i]\xa1This is a test![/i]")
 
         bbc = fm.bbcode
         self.assertEqual(type(bbc), text.BBTagItalic)
 
     def test_bbcode_with_hash(self):
-        fm = self.FakeModelWithHash("[i]¡This is a test![/i]")
+        fm = self.FakeModelWithHash("[i]\xa1This is a test![/i]")
 
         fm.save()
 
-        self.assertEqual(fm.hash, hashlib.sha1("[i]¡This is a test![/i]").hexdigest())
+        self.assertEqual(fm.hash, hashlib.sha1("[i]\xa1This is a test![/i]").hexdigest())
     
     def test_no_hash_on_unparsed(self):
-        fm = self.FakeModelWithHash("¡This is a test!")
+        fm = self.FakeModelWithHash("\xa1This is a test!")
 
         fm.save()
 

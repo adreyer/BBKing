@@ -53,6 +53,10 @@ class BlockTag(object):
             output.write(item.render(context))
         return mark_safe(output.getvalue())
 
+    @property
+    def raw(self):
+        return "".join(item.raw for item in self.contents)
+
 class LiteralTag(object):
     def __init__(self, value):
         self.value = value
@@ -60,15 +64,20 @@ class LiteralTag(object):
     def render(self, context):
         return defaultfilters.linebreaksbr(conditional_escape(self.value))
 
+    @property
+    def raw(self):
+        return self.value
+
 class BBTag(object):
     takes_arg = False
     takes_kwargs = False
     
-    def __init__(self, contents):
+    def __init__(self, contents, raw):
         if not self.tag_name:
             raise UnnamedTagException
 
         self.contents = contents
+        self.raw = raw
 
     @classmethod
     def get_template(cls):
@@ -99,11 +108,12 @@ class BBTagWithArg(BBTag):
     takes_kwargs = False
     default_arg = None
     
-    def __init__(self, contents, arg=None):
+    def __init__(self, contents, raw, arg=None):
         if not self.tag_name:
             raise UnnamedTagException
 
         self.contents = contents
+        self.raw = raw
         if arg is None:
             self.arg = self.default_arg
         else:
@@ -123,11 +133,12 @@ class BBTagWithKWArgs(BBTag):
     takes_arg = False
     takes_kwargs = True
     
-    def __init__(self, contents, **kwargs):
+    def __init__(self, contents, raw, **kwargs):
         if not self.tag_name:
             raise UnnamedTagException
 
         self.contents = contents
+        self.raw = raw
         self.kwargs = kwargs
 
     def render(self, context):
@@ -149,11 +160,11 @@ def load_tags(contents):
             tag = get_tag(item.name)
             children = load_tags(item.contents)
             if item.arg and tag.takes_arg:
-                tags.append(tag(children, item.arg))
+                tags.append(tag(children, item.raw, item.arg))
             elif item.kwargs and tag.takes_kwargs:
-                tags.append(tag(children, **item.kwargs)) 
+                tags.append(tag(children, item.raw, **item.kwargs)) 
             else:
-                tags.append(tag(children))
+                tags.append(tag(children, item.raw))
         else:
             tags.append(LiteralTag(item))
 

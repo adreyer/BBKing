@@ -37,9 +37,10 @@ def compress(contents):
     return compressed
 
 class Tagged(object):
-    def __init__(self, name, contents, arg=None, **kwargs): 
+    def __init__(self, name, contents, raw, arg=None, **kwargs): 
         self.name = name
         self.contents = contents
+        self.raw = raw
         self.arg = arg
         self.kwargs = kwargs
 
@@ -62,10 +63,11 @@ def p_tagged(p):
     '''
     name, arg, kwargs, raw = p[1]
     close_name, close_raw = p[3]
+    full_raw = p[0] = [raw] + p[2] + [close_raw]
     if name != close_name:
-        p[0] = [raw] + p[2] + [close_raw]
+        p[0] = full_raw
         return
-    p[0] = [Tagged(name, compress(p[2]), arg, **kwargs)]
+    p[0] = [Tagged(name, compress(p[2]), full_raw, arg, **kwargs)]
 
 def p_untagged(p):
     '''untagged : SYMBOL
