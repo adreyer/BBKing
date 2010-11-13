@@ -23,3 +23,6 @@ def bbcode(parser, token):
     except ValueError:
         raise template.TemplateSyntaxError, "bbcode tag requires one argument"
     return BBCodeNode(var)
+
+
+

@@ -7,6 +7,7 @@ from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape
 
 from bbking import parser
+from bbking.templatetags.wordfilter import wordfilter
 
 DEFAULT_TAG_LIBRARIES = (
     'bbking.bbtags.text',
@@ -62,6 +63,9 @@ class LiteralTag(object):
         self.value = value
 
     def render(self, context):
+        if settings.BBKING_USE_WORDFILTERS:
+            return defaultfilters.linebreaksbr(
+                    conditional_escape(wordfilter(self.value)))
         return defaultfilters.linebreaksbr(conditional_escape(self.value))
 
     @property
