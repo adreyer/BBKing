@@ -35,7 +35,7 @@ class BBTagImg(BBTag):
 class BBTagYouTube(BBTag):
     tag_name = 'youtube'
 
-    _video_re = re.compile(r"v=(\w+)")
+    _video_re = re.compile(r"v=([\w-]+)")
     _start_re = re.compile(r"(;start=\d+)")
     _base_url = 'http://www.youtube.com/v/%s%s&amp;hl=en&amp;fs=1&amp;'
 
