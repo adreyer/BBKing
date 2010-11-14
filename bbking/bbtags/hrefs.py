@@ -1,5 +1,6 @@
 import re
 from urlparse import urlparse
+from django.utils.safestring import mark_safe
 
 from bbking import BBTag
 
@@ -50,9 +51,11 @@ class BBTagYouTube(BBTag):
         context['valid_url'] = True
         smatch = self._start_re.search(url)
         if smatch:
-            context['url'] = self._base_url % (match.group(1), smatch.group(1))
+            context['url'] = mark_safe(
+                self._base_url % (match.group(1), smatch.group(1)))
         else:
-            context['url'] = self._base_url % (match.group(1), '')
+            context['url'] = mark_safe(
+                self._base_url % (match.group(1), ''))
 
     @classmethod
     def usage(cls):

@@ -62,6 +62,16 @@ I am aggree.
         self.assertEqual(type(parsed[1]), str)
         self.assertEqual(parsed[1].strip(), 'I am aggree.')
 
+    def test_parse_url_with_eq(self):
+        parsed = parser.parser.parse("[url=http://www.example.com/this=a_test]An Example Site[/url]")
+        self.assertEqual(len(parsed), 1)
+        tag = parsed[0]
+        self.assertEqual(type(tag), parser.Tagged)
+        self.assertEqual(tag.name, 'url')
+
+        self.assertEqual(tag.arg, "http://www.example.com/this=a_test")
+
+
 class MalformedCodeTestCase(TestCase):
     def test_parse_unclosed(self):
         parsed = parser.parser.parse("[img]http://www.example.com/goatse.jpg")
