@@ -156,6 +156,7 @@ def p_term(p):
             | MISC
             | SLASH
             | LBRACKET
+            | EQ
     '''
     p[0] = Text(p[1])
 
