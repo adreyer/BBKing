@@ -1,6 +1,7 @@
 from django.conf import settings
 
 import StringIO
+from string import lower
 
 import ply.yacc as yacc
 
@@ -58,7 +59,7 @@ class CloseTag(object):
 
 class Tagged(object):
     def __init__(self, open_tag, contents, close_tag, raw):
-        self.name = open_tag.name
+        self.name = lower(open_tag.name)
         self.contents = contents
         self.arg = open_tag.arg
         self.kwargs = open_tag.kwargs
