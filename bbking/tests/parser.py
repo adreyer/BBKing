@@ -71,6 +71,15 @@ I am aggree.
 
         self.assertEqual(tag.arg, "http://www.example.com/this=a_test")
 
+    def test_infamous_footnote_bracket_bug(self):
+        parsed = parser.parser.parse("[quote]According to the NYT[2] you are a douche[/quote]")
+        self.assertEqual(len(parsed), 1)
+        tag = parsed[0]
+        self.assertEqual(type(tag), parser.Tagged)
+        self.assertEqual(tag.name, 'quote')
+        
+        self.assertEqual(len(tag.contents), 1)
+        self.assertEqual(tag.contents[0], 'According to the NYT[2] you are a douche')
 
 class MalformedCodeTestCase(TestCase):
     def test_parse_unclosed(self):

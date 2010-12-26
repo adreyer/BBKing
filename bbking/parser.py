@@ -212,6 +212,7 @@ def p_tag_arg(p):
 
 def p_malformed_open_tag(p):
     '''malformed_opentag : LBRACKET SYMBOL WHITESPACE RBRACKET
+               | LBRACKET MISC RBRACKET
                | LBRACKET SYMBOL WHITESPACE malformed_args RBRACKET
                | LBRACKET RBRACKET
     '''
