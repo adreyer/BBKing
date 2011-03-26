@@ -48,6 +48,7 @@ def get_tag(name):
 class BlockTag(object):
     def __init__(self, contents):
         self.contents = contents
+        length = sum(map(len,contents))
 
     def render(self, context):
         output = StringIO.StringIO()
@@ -58,6 +59,9 @@ class BlockTag(object):
     @property
     def raw(self):
         return "".join(item.raw for item in self.contents)
+
+    def __len__(self):
+        return self.length
 
 class LiteralTag(object):
     def __init__(self, value):
@@ -72,6 +76,9 @@ class LiteralTag(object):
     @property
     def raw(self):
         return self.value
+
+    def __len__(self):
+        return len(self.value)
 
 class BBTag(object):
     
@@ -118,6 +125,9 @@ class BBTag(object):
             return self.get_template().render(context)
         finally:
             context.pop()
+
+    def __len__(self):
+        return len(self.contents)
 
 def load_tags(contents):
     tags = []
