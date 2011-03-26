@@ -48,7 +48,7 @@ def get_tag(name):
 class BlockTag(object):
     def __init__(self, contents):
         self.contents = contents
-        length = sum(map(len,contents))
+        self.length = sum(map(len,contents))
 
     def render(self, context):
         output = StringIO.StringIO()
@@ -78,7 +78,7 @@ class LiteralTag(object):
         return self.value
 
     def __len__(self):
-        return len(self.value)
+        return len(self.value.strip())
 
 class BBTag(object):
     
@@ -95,6 +95,8 @@ class BBTag(object):
         else:
             self.arg = self.default_arg
         self.kwargs = kwargs
+
+        self.length = len(contents)
 
     @classmethod
     def get_template(cls):
@@ -127,7 +129,7 @@ class BBTag(object):
             context.pop()
 
     def __len__(self):
-        return len(self.contents)
+        return self.length
 
 def load_tags(contents):
     tags = []
