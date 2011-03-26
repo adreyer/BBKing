@@ -7,6 +7,15 @@ import ply.yacc as yacc
 
 from bbking.lexer import tokens
 
+def validate_tag_name(name):
+    import bbking
+
+    try:
+        bbking.get_tag(name.lower())
+        return True
+    except bbking.TagDoesNotExist:
+        return False
+
 def flatten(items):
     if not isinstance(items, list):
         return items
@@ -183,6 +192,8 @@ def p_close_tag(p):
 
 def p_simple_tag(p):
     'opentag : LBRACKET SYMBOL RBRACKET'
+    if not validate_tag_name(p[2]):
+        raise SyntaxError
     p[0] = OpenTag(p[2], "".join(raw(item) for item in p[1:]))
 
 def p_single_arg_tag(p):
