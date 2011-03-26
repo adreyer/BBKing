@@ -226,6 +226,7 @@ def p_malformed_open_tag(p):
                | LBRACKET MISC RBRACKET
                | LBRACKET SYMBOL WHITESPACE malformed_args RBRACKET
                | LBRACKET RBRACKET
+               | LBRACKET SYMBOL EQ RBRACKET
     '''
     p[0] = Text("".join(raw(item) for item in p[1:]))
 
