@@ -234,7 +234,6 @@ def p_malformed_open_tag(p):
                | LBRACKET error RBRACKET
                | LBRACKET malformed_opentag
     '''
-    print "malformed_open", list(p)
     p[0] = Text("".join(raw(item) for item in p[1:]))
 
 def p_malformed_args(p):
