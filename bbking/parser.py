@@ -206,7 +206,7 @@ def p_single_arg_tag(p):
     p[0] = OpenTag(p[2], "".join(raw(item) for item in p[1:]), p[5].raw)
 
 def p_multi_arg_tag(p):
-    'opentag : LBRACKET SYMBOL seen_SYMBOL WHITESPACE args RBRACKET'
+    'opentag : LBRACKET SYMBOL WHITESPACE args RBRACKET'
     args = p[4]
     p[0] = OpenTag(p[2], "".join(raw(item) for item in p[1:]),
         **args.args)
@@ -231,7 +231,6 @@ def p_malformed_open_tag(p):
                | LBRACKET MISC RBRACKET
                | LBRACKET SYMBOL WHITESPACE malformed_args RBRACKET
                | LBRACKET RBRACKET
-               | LBRACKET SYMBOL EQ RBRACKET
                | LBRACKET error RBRACKET
     '''
     p[0] = Text("".join(raw(item) for item in p[1:]))
