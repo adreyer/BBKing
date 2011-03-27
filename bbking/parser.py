@@ -190,18 +190,23 @@ def p_close_tag(p):
     'closetag : LBRACKET SLASH SYMBOL RBRACKET'
     p[0] = CloseTag(p[3], "".join(raw(item) for item in p[1:]))
 
-def p_simple_tag(p):
-    'opentag : LBRACKET SYMBOL RBRACKET'
-    if not validate_tag_name(p[2]):
+def p_identify_open_tag(p):
+    "seen_SYMBOL : "
+    if not validate_tag_name(p[-1]):
+        p[0] = p[-1]
         raise SyntaxError
+    p[0] = Text("")
+
+def p_simple_tag(p):
+    'opentag : LBRACKET SYMBOL seen_SYMBOL RBRACKET'
     p[0] = OpenTag(p[2], "".join(raw(item) for item in p[1:]))
 
 def p_single_arg_tag(p):
-    'opentag : LBRACKET SYMBOL EQ text RBRACKET'
-    p[0] = OpenTag(p[2], "".join(raw(item) for item in p[1:]), p[4].raw)
+    'opentag : LBRACKET SYMBOL seen_SYMBOL EQ text RBRACKET'
+    p[0] = OpenTag(p[2], "".join(raw(item) for item in p[1:]), p[5].raw)
 
 def p_multi_arg_tag(p):
-    'opentag : LBRACKET SYMBOL WHITESPACE args RBRACKET'
+    'opentag : LBRACKET SYMBOL seen_SYMBOL WHITESPACE args RBRACKET'
     args = p[4]
     p[0] = OpenTag(p[2], "".join(raw(item) for item in p[1:]),
         **args.args)
@@ -227,6 +232,7 @@ def p_malformed_open_tag(p):
                | LBRACKET SYMBOL WHITESPACE malformed_args RBRACKET
                | LBRACKET RBRACKET
                | LBRACKET SYMBOL EQ RBRACKET
+               | LBRACKET error RBRACKET
     '''
     p[0] = Text("".join(raw(item) for item in p[1:]))
 
