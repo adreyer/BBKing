@@ -187,7 +187,7 @@ def p_term_no_ws(p):
     p[0] = Text(p[1])
 
 def p_close_tag(p):
-    'closetag : LBRACKET SLASH SYMBOL RBRACKET'
+    'closetag : LBRACKET SLASH SYMBOL seen_SYMBOL RBRACKET'
     p[0] = CloseTag(p[3], "".join(raw(item) for item in p[1:]))
 
 def p_identify_open_tag(p):
@@ -257,9 +257,9 @@ def p_malformed_args_symbol_only(p):
     p[0] = Text(p[1])
 
 def p_malformed_close_tag(p):
-    '''closetag : LBRACKET SLASH errors RBRACKET
+    '''malformed_closetag : LBRACKET SLASH errors RBRACKET
     '''
-    p[0] = CloseTag('!malformed-close', "".join(raw(item) for item in p[1:]))
+    p[0] = Text("".join(raw(item) for item in p[1:]))
 
 def p_errors(p):
     '''errors : SYMBOL errors error
@@ -277,6 +277,7 @@ def p_errors(p):
 
 def p_malformed_tags(p):
     '''untagged : malformed_opentag
+                | malformed_closetag
     '''
     p[0] = p[1]
 

@@ -112,6 +112,10 @@ class MalformedCodeTestCase(TestCase):
 
         self.assertEqual(len(parsed), 1)
         self.assertEqual(parsed[0],"[url=http://www.example.com/]this is a test.[/url malformed]")
+    
+    def test_bad_tag_name(self):
+        parsed = parser.parser.parse("[noparse][b]test[/b][/noparse]")
+        self.assertEqual(len(parsed), 3)
 
 class CompiledTagsTestCase(TestCase):
     def test_literal_len(self):
