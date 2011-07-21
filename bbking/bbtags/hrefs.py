@@ -37,7 +37,7 @@ class BBTagYouTube(BBTag):
 
     _video_re = re.compile(r"v=([\w-]+)")
     _start_re = re.compile(r"(;start=\d+)")
-    _base_url = 'http://www.youtube.com/v/%s%s&amp;hl=en&amp;fs=1&amp;'
+    _base_url = 'https://www.youtube.com/v/%s%s&amp;hl=en&amp;fs=1&amp;'
 
     def update_context(self, context):
         url = context['raw_contents']
