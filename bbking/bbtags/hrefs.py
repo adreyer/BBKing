@@ -52,7 +52,7 @@ class BBTagYouTube(BBTag):
         smatch = self._start_re.search(url)
         if smatch:
             context['url'] = mark_safe(
-                self._base_url % (match.group(2), smatch.group(2)))
+                self._base_url % (match.group(2), smatch.group(1)))
         else:
             context['url'] = mark_safe(
                 self._base_url % (match.group(2), ''))
