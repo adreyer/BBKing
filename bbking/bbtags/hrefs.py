@@ -35,9 +35,9 @@ class BBTagImg(BBTag):
 class BBTagYouTube(BBTag):
     tag_name = 'youtube'
 
-    _video_re = re.compile(r"v=([\w-]+)")
+    _video_re = re.compile(r"(v=|http://youtu.be/)([\w-]+)")
     _start_re = re.compile(r"(;start=\d+)")
-    _base_url = 'https://www.youtube.com/v/%s%s&amp;hl=en&amp;fs=1&amp;'
+    _base_url = 'https://www.youtube.com/embed/%s%s'
 
     def update_context(self, context):
         url = context['raw_contents']
@@ -52,10 +52,10 @@ class BBTagYouTube(BBTag):
         smatch = self._start_re.search(url)
         if smatch:
             context['url'] = mark_safe(
-                self._base_url % (match.group(1), smatch.group(1)))
+                self._base_url % (match.group(2), smatch.group(2)))
         else:
             context['url'] = mark_safe(
-                self._base_url % (match.group(1), ''))
+                self._base_url % (match.group(2), ''))
 
     @classmethod
     def usage(cls):
