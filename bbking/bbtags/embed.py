@@ -3,4 +3,4 @@ from bbking import BBTag
 __all__ = ['BBOEmbed']
 
 class BBOEmbed(BBTag):
-    tag_name = 'oembed'
+    tag_name = 'embed'
