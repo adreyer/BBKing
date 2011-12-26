@@ -40,7 +40,7 @@ class Text(object):
 
 class OpenTag(object):
     def __init__(self, name, raw, arg=None, **kwargs):
-        self.name = name
+        self.name = name.lower()
         self.raw = raw
         self.arg = arg
         self.kwargs = kwargs
@@ -63,7 +63,7 @@ class Arg(object):
 
 class CloseTag(object):
     def __init__(self, name, raw):
-        self.name = name
+        self.name = name.lower()
         self.raw = raw
 
 class Tagged(object):
